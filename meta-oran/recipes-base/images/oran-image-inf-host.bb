@@ -13,7 +13,6 @@ require recipes-base/images/oran-image-inf-minimal.bb
 IMAGE_INSTALL += " \
     aufs-util \
     celt051 \
-    ceph \
     dpdk \
     hwloc \
     kernel-modules \
@@ -27,6 +26,10 @@ IMAGE_INSTALL += " \
     python-pyparsing \
     rt-tests \
     schedtool-dl \
+"
+
+IMAGE_INSTALL_append_x86-64 = " \
+    ceph \
     spice \
 "
 
