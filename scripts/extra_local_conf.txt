@@ -1,0 +1,16 @@
+PREMIRRORS =+ "\
+  bzr://.*/.* http://128.224.153.41/downloads/ \n \
+  cvs://.*/.* http://128.224.153.41/downloads/ \n \
+  git://.*/.* http://128.224.153.41/downloads/ \n \
+  hg://.*/.* http://128.224.153.41/downloads/ \n \
+  osc://.*/.* http://128.224.153.41/downloads/ \n \
+  p4://.*/.* http://128.224.153.41/downloads/ \n \
+  svn://.*/.* http://128.224.153.41/downloads/ \n \
+  ftp://.*/.* http://128.224.153.41/downloads/ \n \
+  http://.*/.* http://128.224.153.41/downloads/ \n \
+  https://.*/.* http://128.224.153.41/downloads/ \n \
+"
+
+http_proxy = "http://128.224.230.5:9090"
+https_proxy = "http://128.224.230.5:9090"
+no_proxy = "localhost,127.0.0.1,localaddress"
