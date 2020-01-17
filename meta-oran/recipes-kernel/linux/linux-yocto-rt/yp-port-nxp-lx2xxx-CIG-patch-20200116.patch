@@ -1,0 +1,490 @@
+From b8ad05344a94164527aab11151642938c7f451d2 Mon Sep 17 00:00:00 2001
+From: Jackie Huang <jackie.huang@windriver.com>
+Date: Sat, 18 Jan 2020 01:14:08 +0800
+Subject: [PATCH] nxp-lx2xxx: CIG patch 20200116
+
+The original patch is from CIG:
+lsdk1909 linux-4.14-rt 20200116 patch
+
+The conflicts fixed.
+
+Signed-off-by: Jackie Huang <jackie.huang@windriver.com>
+---
+ arch/arm64/boot/dts/freescale/fsl-lx2160a-rdb.dts | 265 ++++++++++------------
+ arch/arm64/boot/dts/freescale/fsl-lx2160a.dtsi    |  14 +-
+ arch/arm64/configs/defconfig                      |   1 +
+ drivers/gpio/gpio-mpc8xxx.c                       |   6 +
+ drivers/gpio/gpiolib-sysfs.c                      |   2 +-
+ drivers/iommu/dma-iommu.c                         |  12 +-
+ drivers/mtd/spi-nor/spi-nor.c                     |   1 +
+ 7 files changed, 142 insertions(+), 159 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/fsl-lx2160a-rdb.dts b/arch/arm64/boot/dts/freescale/fsl-lx2160a-rdb.dts
+index 3e46129..6b956bf 100644
+--- a/arch/arm64/boot/dts/freescale/fsl-lx2160a-rdb.dts
++++ b/arch/arm64/boot/dts/freescale/fsl-lx2160a-rdb.dts
+@@ -31,42 +31,10 @@
+ 	};
+ };
+ 
+-&can0 {
+-	status = "okay";
+-
+-	can-transceiver {
+-		max-bitrate = <5000000>;
+-	};
+-};
+-
+-&can1 {
+-	status = "okay";
+-
+-	can-transceiver {
+-		max-bitrate = <5000000>;
+-	};
+-};
+-
+ &crypto {
+ 	status = "okay";
+ };
+ 
+-&emdio1 {
+-	status = "okay";
+-};
+-
+-&emdio2 {
+-	status = "okay";
+-};
+-
+-&esdhc0 {
+-	sd-uhs-sdr104;
+-	sd-uhs-sdr50;
+-	sd-uhs-sdr25;
+-	sd-uhs-sdr12;
+-	status = "okay";
+-};
+-
+ &esdhc1 {
+ 	mmc-hs200-1_8v;
+ 	mmc-hs400-1_8v;
+@@ -77,80 +45,153 @@
+ &i2c0 {
+ 	status = "okay";
+ 
+-	i2c-mux@77 {
+-		compatible = "nxp,pca9547";
+-		reg = <0x77>;
++	i2cswitch@70 {
++		compatible = "nxp,pca9548";
++		reg = <0x70>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
++		i2c@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x1>;
++
++			pca9534@27 {
++				compatible = "nxp,pca9534";
++				gpio-controller;
++				reg = <0x27>;
++			};
++		};
++		
+ 		i2c@2 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0x2>;
+ 
+-			power-monitor@40 {
+-				compatible = "ti,ina220";
+-				reg = <0x40>;
+-				shunt-resistor = <1000>;
++			tps35622@60 {
++				compatible = "ti,tps53679";
++				reg = <0x60>;
+ 			};
+ 		};
+-
++		
+ 		i2c@3 {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0x3>;
++			
++			cu-retimer@19{
++				reg = <0x19>;
++			};
++		};
++		
++		i2c@4 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x4>;
++			
++			ddr@51{
++				reg = <0x51>;
++			};
++			ddr@52{
++				reg = <0x52>;
++			};
++		};
++		
++		i2c@5 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x5>;
+ 
+-			temperature-sensor@4c {
+-				compatible = "nxp,sa56004";
++			tmp435@4c {
++				compatible = "tmp435";
+ 				reg = <0x4c>;
+-				vcc-supply = <&sb_3v3>;
++			};
++		};	
++		
++		i2c@6 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x6>;
++
++			tmp435@4c {
++				compatible = "tmp435";
++				reg = <0x4c>;
++			};
++		};
++		
++		i2c@7 {
++			#address-cells = <0x1>;
++			#size-cells = <0x0>;
++			reg = <0x7>;
++
++			du-sfp@50 {
++				reg = <0x50>;
+ 			};
+ 
+-			temperature-sensor@4d {
+-				compatible = "nxp,sa56004";
+-				reg = <0x4d>;
+-				vcc-supply = <&sb_3v3>;
++			du-sfp@51 {
++				reg = <0x51>;
++			};
++		};
++		
++		i2c@8 {
++			#address-cells = <0x1>;
++			#size-cells = <0x0>;
++			reg = <0x8>;
++
++			du-sfp@50 {
++				reg = <0x50>;
++			};
++			du-sfp@51 {
++				reg = <0x51>;
+ 			};
+ 		};
+ 	};
+ };
+ 
+-&i2c4 {
++&i2c1 {
+ 	status = "okay";
+ 
+-	rtc@51 {
+-		compatible = "nxp,pcf2129";
++	cu-sfp0@50 {
++		reg = <0x50>;
++	};
++
++	cu-sfp1@51 {
+ 		reg = <0x51>;
+-		// IRQ10_B
+-		interrupts = <0 150 0x4>;
++	};
++	
++	cu-retimer@19 {
++		reg = <0x19>;
++	};
++	
++	pca9555@27 {
++		compatible = "nxp,pca9555";
++		gpio-controller;
++		#gpio-cells = <2>;
++		reg = <0x27>;
++		status = "okay";
++	};
++	
++	pca9534@27 {
++		compatible = "nxp,pca9534";
++		gpio-controller;
++		#gpio-cells = <2>;
++		reg = <0x27>;
++		status = "disabled";
+ 	};
+ };
+ 
+ &fspi {
+ 	status = "okay";
+-	nxp,fspi-has-second-chip;
+-	flash0: mt35xu512aba@0 {
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		compatible = "micron,m25p80";
+-		m25p,fast-read;
+-		spi-max-frequency = <50000000>;
+-		reg = <0>;
+-		/* The following setting enables 1-1-8 (CMD-ADDR-DATA) mode */
+-		spi-rx-bus-width = <8>;
+-		spi-tx-bus-width = <1>;
+-	};
+ 
+-	flash1: mt35xu512aba@1 {
++	flash0: mt25qu512a@0 {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		compatible = "micron,m25p80";
+ 		m25p,fast-read;
+ 		spi-max-frequency = <50000000>;
+-		reg = <1>;
+-		/* The following setting enables 1-1-8 (CMD-ADDR-DATA) mode */
+-		spi-rx-bus-width = <8>;
+-		spi-tx-bus-width = <1>;
++		reg = <0>;
++		spi-rx-bus-width = <4>;
++		spi-tx-bus-width = <4>;
+ 	};
+ };
+ 
+@@ -158,92 +199,14 @@
+ 	status = "okay";
+ };
+ 
+-&uart1 {
+-	status = "okay";
+-};
+-
+ &usb0 {
+ 	status = "okay";
+ };
+ 
+-&usb1 {
+-	status = "okay";
+-};
+-
+-&emdio1 {
+-	rgmii_phy1: ethernet-phy@1 {
+-		/* AR8035 PHY - "compatible" property not strictly needed */
+-		compatible = "ethernet-phy-id004d.d072";
+-		reg = <0x1>;
+-		/* Poll mode - no "interrupts" property defined */
+-	};
+-	rgmii_phy2: ethernet-phy@2 {
+-		/* AR8035 PHY - "compatible" property not strictly needed */
+-		compatible = "ethernet-phy-id004d.d072";
+-		reg = <0x2>;
+-		/* Poll mode - no "interrupts" property defined */
+-	};
+-	aquantia_phy1: ethernet-phy@4 {
+-		/* AQR107 PHY - "compatible" property not strictly needed */
+-		compatible = "ethernet-phy-ieee802.3-c45";
+-		interrupts = <GIC_SPI 2 IRQ_TYPE_LEVEL_HIGH>;
+-		reg = <0x4>;
+-	};
+-	aquantia_phy2: ethernet-phy@5 {
+-		/* AQR107 PHY - "compatible" property not strictly needed */
+-		compatible = "ethernet-phy-ieee802.3-c45";
+-		interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
+-		reg = <0x5>;
+-	};
+-};
+-
+-&emdio2 {
+-	inphi_phy: ethernet-phy@0 {
+-		compatible = "ethernet-phy-id0210.7440";
+-		reg = <0x0>;
+-	};
+-};
+-
+-&dpmac3 {
+-	phy-handle = <&aquantia_phy1>;
+-	phy-connection-type = "xgmii";
+-};
+-
+-&dpmac4 {
+-	phy-handle = <&aquantia_phy2>;
+-	phy-connection-type = "xgmii";
+-};
+-
+-&dpmac5 {
+-	phy-handle = <&inphi_phy>;
+-};
+-
+-&dpmac6 {
+-	phy-handle = <&inphi_phy>;
+-};
+-
+-&dpmac17 {
+-	phy-handle = <&rgmii_phy1>;
+-	phy-connection-type = "rgmii-id";
+-};
+-
+-&dpmac18 {
+-	phy-handle = <&rgmii_phy2>;
+-	phy-connection-type = "rgmii-id";
+-};
+-
+-&sata0 {
+-	status = "okay";
+-};
+-
+-&sata1 {
+-	status = "okay";
++&gpio0 {
++	status = "disabled";
+ };
+ 
+-&sata2 {
+-	status = "okay";
+-};
+-
+-&sata3 {
+-	status = "okay";
++&gpio1 {
++	status = "disabled";
+ };
+diff --git a/arch/arm64/boot/dts/freescale/fsl-lx2160a.dtsi b/arch/arm64/boot/dts/freescale/fsl-lx2160a.dtsi
+index 3ab5ad1..bbd784f 100644
+--- a/arch/arm64/boot/dts/freescale/fsl-lx2160a.dtsi
++++ b/arch/arm64/boot/dts/freescale/fsl-lx2160a.dtsi
+@@ -735,16 +735,24 @@
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
+ 		};
++		
++		gpio-test {
++			compatible = "gpio-test";
++			pin0-gpios = <&gpio2 0 GPIO_ACTIVE_HIGH>;
++			pin1-gpios = <&gpio2 1 GPIO_ACTIVE_HIGH>;
++			pin11-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
++			interrupt-parent = <&gpio2>;
++			interrupts = <0 IRQ_TYPE_EDGE_FALLING>,
++						 <1 IRQ_TYPE_EDGE_FALLING>,
++						 <11 IRQ_TYPE_EDGE_FALLING>;
++		};
+ 
+ 		gpio3: gpio@2330000 {
+ 			compatible = "fsl,qoriq-gpio";
+ 			reg = <0x0 0x2330000 0x0 0x10000>;
+-			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
+ 			gpio-controller;
+ 			little-endian;
+ 			#gpio-cells = <2>;
+-			interrupt-controller;
+-			#interrupt-cells = <2>;
+ 		};
+ 
+ 		watchdog@23a0000 {
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index f9a186f..32fb301 100644
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -342,6 +342,7 @@ CONFIG_GPIO_XGENE_SB=y
+ CONFIG_GPIO_PCA953X=y
+ CONFIG_GPIO_PCA953X_IRQ=y
+ CONFIG_GPIO_MAX77620=y
++CONFIG_GPIO_SYSFS=y
+ CONFIG_POWER_AVS=y
+ CONFIG_ROCKCHIP_IODOMAIN=y
+ CONFIG_POWER_RESET_MSM=y
+diff --git a/drivers/gpio/gpio-mpc8xxx.c b/drivers/gpio/gpio-mpc8xxx.c
+index c8673a5..4e049f2 100644
+--- a/drivers/gpio/gpio-mpc8xxx.c
++++ b/drivers/gpio/gpio-mpc8xxx.c
+@@ -23,6 +23,7 @@
+ #include <linux/gpio/driver.h>
+ #include <linux/bitops.h>
+ 
++#define GPIO_IRQ_AFFINITY_CORE         4
+ #define MPC8XXX_GPIO_PINS	32
+ 
+ #define GPIO_DIR		0x00
+@@ -397,6 +398,11 @@ static int mpc8xxx_remove(struct platform_device *pdev)
+ 	gpiochip_remove(&mpc8xxx_gc->gc);
+ 	iounmap(mpc8xxx_gc->regs);
+ 
++    //irq_set_chained_handler_and_data(mpc8xxx_gc->irqn, mpc8xxx_gpio_irq_cascade, mpc8xxx_gc);
++    ret = irq_set_affinity(mpc8xxx_gc->irqn, cpumask_of(GPIO_IRQ_AFFINITY_CORE));
++    if (ret)
++        pr_err("mpc8xxx_probe irq_set_affinity() failed, ret= %d\n", ret);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/gpio/gpiolib-sysfs.c b/drivers/gpio/gpiolib-sysfs.c
+index 3dbaf48..b7ae144 100644
+--- a/drivers/gpio/gpiolib-sysfs.c
++++ b/drivers/gpio/gpiolib-sysfs.c
+@@ -176,7 +176,7 @@ static int gpio_sysfs_request_irq(struct device *dev, unsigned char flags)
+ 	if (!data->value_kn)
+ 		return -ENODEV;
+ 
+-	irq_flags = IRQF_SHARED;
++	irq_flags = IRQF_SHARED | IRQF_NO_THREAD;
+ 	if (flags & GPIO_IRQF_TRIGGER_FALLING)
+ 		irq_flags |= test_bit(FLAG_ACTIVE_LOW, &desc->flags) ?
+ 			IRQF_TRIGGER_RISING : IRQF_TRIGGER_FALLING;
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index ddcbbdb..b8fbc83 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -54,7 +54,8 @@ struct iommu_dma_cookie {
+ 		dma_addr_t		msi_iova;
+ 	};
+ 	struct list_head		msi_page_list;
+-	spinlock_t			msi_lock;
++	//spinlock_t			msi_lock;
++    raw_spinlock_t msi_lock;
+ };
+ 
+ static inline size_t cookie_msi_granule(struct iommu_dma_cookie *cookie)
+@@ -70,7 +71,8 @@ static struct iommu_dma_cookie *cookie_alloc(enum iommu_dma_cookie_type type)
+ 
+ 	cookie = kzalloc(sizeof(*cookie), GFP_KERNEL);
+ 	if (cookie) {
+-		spin_lock_init(&cookie->msi_lock);
++		//spin_lock_init(&cookie->msi_lock);
++        raw_spin_lock_init(&cookie->msi_lock);
+ 		INIT_LIST_HEAD(&cookie->msi_page_list);
+ 		cookie->type = type;
+ 	}
+@@ -881,9 +883,11 @@ void iommu_dma_map_msi_msg(int irq, struct msi_msg *msg)
+ 	 * irq_desc_lock if, say, someone tries to retarget the affinity
+ 	 * of an MSI from within an IPI handler.
+ 	 */
+-	spin_lock_irqsave(&cookie->msi_lock, flags);
++	//spin_lock_irqsave(&cookie->msi_lock, flags);
++    raw_spin_lock_irqsave(&cookie->msi_lock, flags);
+ 	msi_page = iommu_dma_get_msi_page(dev, msi_addr, domain);
+-	spin_unlock_irqrestore(&cookie->msi_lock, flags);
++	//spin_unlock_irqrestore(&cookie->msi_lock, flags);
++    raw_spin_unlock_irqrestore(&cookie->msi_lock, flags);
+ 
+ 	if (WARN_ON(!msi_page)) {
+ 		/*
+diff --git a/drivers/mtd/spi-nor/spi-nor.c b/drivers/mtd/spi-nor/spi-nor.c
+index dd3919c02..2afd76f 100644
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -1107,6 +1107,7 @@ static const struct flash_info spi_nor_ids[] = {
+ 	{ "n25q128a13",  INFO(0x20ba18, 0, 64 * 1024,  256, SECT_4K | SPI_NOR_QUAD_READ) },
+ 	{ "n25q256a",    INFO(0x20ba19, 0, 64 * 1024,  512, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
+ 	{ "n25q256ax1",  INFO(0x20bb19, 0, 64 * 1024,  512, SECT_4K | SPI_NOR_QUAD_READ) },
++	{"mt25qu512a",   INFO6(0x20bb20, 0x104400, 64 * 1024, 1024, SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ | SPI_NOR_SKIP_SFDP) },
+ 	{ "n25q512a",    INFO(0x20bb20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
+ 	{ "n25q512ax3",  INFO(0x20ba20, 0, 64 * 1024, 1024, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ) },
+ 	{ "n25q00",      INFO(0x20ba21, 0, 64 * 1024, 2048, SECT_4K | USE_FSR | SPI_NOR_QUAD_READ | NO_CHIP_ERASE) },
+-- 
+2.7.4
+
