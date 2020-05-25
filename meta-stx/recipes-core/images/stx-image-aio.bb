@@ -44,7 +44,6 @@ IMAGE_INSTALL_append = " \
 	playbookconfig \
 	distributedcloud-client-dcmanager \
 	registry-token-server \
-	rt-tests \
 	"
 
 IMAGE_FEATURES += " \
