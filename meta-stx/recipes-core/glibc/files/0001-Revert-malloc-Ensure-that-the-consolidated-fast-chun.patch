@@ -1,0 +1,31 @@
+From 5d0d714d5f0f88cf220916f249776fdd78b8dd53 Mon Sep 17 00:00:00 2001
+From: Jackie Huang <jackie.huang@windriver.com>
+Date: Tue, 7 Jul 2020 09:49:01 +0800
+Subject: [PATCH] Revert "malloc: Ensure that the consolidated fast chunk has a
+ sane size."
+
+This reverts commit 249a5895f120b13290a372a49bb4b499e749806f.
+---
+ malloc/malloc.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index feaf7ee..d50eef4 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -4479,12 +4479,6 @@ static void malloc_consolidate(mstate av)
+     p = atomic_exchange_acq (fb, NULL);
+     if (p != 0) {
+       do {
+-	{
+-	  unsigned int idx = fastbin_index (chunksize (p));
+-	  if ((&fastbin (av, idx)) != fb)
+-	    malloc_printerr ("malloc_consolidate(): invalid chunk size");
+-	}
+-
+ 	check_inuse_chunk(av, p);
+ 	nextp = p->fd;
+ 
+-- 
+2.7.4
+
