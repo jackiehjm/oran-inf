@@ -1,0 +1,42 @@
+From bd1da4fb7c8f479d60a313abd91438c8037e46d7 Mon Sep 17 00:00:00 2001
+From: Jackie Huang <jackie.huang@windriver.com>
+Date: Thu, 9 Jul 2020 15:24:54 +0800
+Subject: [PATCH] mtcSmgrApi.cpp: add mtrace to debug
+
+Signed-off-by: Jackie Huang <jackie.huang@windriver.com>
+---
+ mtce/src/maintenance/mtcSmgrApi.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/mtce/src/maintenance/mtcSmgrApi.cpp b/mtce/src/maintenance/mtcSmgrApi.cpp
+index e511228..7d24943 100644
+--- a/mtce/src/maintenance/mtcSmgrApi.cpp
++++ b/mtce/src/maintenance/mtcSmgrApi.cpp
+@@ -21,6 +21,8 @@
+ #include "mtcSmgrApi.h"     /* for ... this module header              */
+ #include "jsonUtil.h"       /* for ... jsonUtil_get_key_val            */
+ 
++#include <mcheck.h>
++
+ /*******************************************/
+ /* Internal Private utilities and handlers */
+ /*******************************************/
+@@ -268,6 +270,7 @@ int nodeLinkClass::mtcSmgrApi_request ( struct nodeLinkClass::node * node_ptr, m
+     {
+         return (FAIL_BAD_CASE);
+     }
++    mtrace();
+     do
+     {
+         rc = mtcHttpUtil_api_request ( smgrEvent ) ;
+@@ -299,6 +302,7 @@ int nodeLinkClass::mtcSmgrApi_request ( struct nodeLinkClass::node * node_ptr, m
+     {
+         ilog ("%s is '%s' to Service Management\n", node_ptr->hostname.c_str(), operation_string.c_str());
+     }
++    muntrace();
+     return ( rc );
+ }
+ 
+-- 
+2.7.4
+
