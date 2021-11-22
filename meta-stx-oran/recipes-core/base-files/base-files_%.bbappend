@@ -15,4 +15,7 @@
 
 do_install_append() {
     sed -i -e 's/${STX_REL}/${ORAN_REL}/' ${D}${sysconfdir}/issue*
+
+    # enable some usefull alias
+    sed -i -e 's/# \(alias\)/\1/' ${D}${sysconfdir}/skel/.bashrc
 }
