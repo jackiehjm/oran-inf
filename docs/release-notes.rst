@@ -7,7 +7,7 @@ Release-notes
 =============
 
 
-This document provides the release notes for 3.0.0 of RTP.
+This document provides the release notes for 5.0.0 of RTP.
 
 .. contents::
    :depth: 3
@@ -24,7 +24,7 @@ Version history
 | 2019-11-02         | 1.0.0              | Jackie Huang       | Initial version    |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2020-06-14         | 2.0.0.             | Xiaohua Zhang      |                    |
+| 2020-06-14         | 2.0.0              | Xiaohua Zhang      |                    |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 | 2020-11-23         | 3.0.0              | Xiaohua Zhang      |                    |
@@ -33,6 +33,19 @@ Version history
 | 2021-06-29         | 4.0.0              | Xiaohua Zhang      |                    |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2021-12-03         | 5.0.0              | Jackie Huang       |                    |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
+
+Version 5.0.0, 2021-12-03
+-------------------------
+- Fifth version (E release)
+- Upgrade most components to align with StarlingX 5.0
+- Enable three deployment modes:
+
+  - AIO simplex mode
+  - AIO duplex mode (2 servers with High Availabity)
+  - AIO duplex mode (2 servers with High Availabity) with additional worker node
 
 Version 4.0.0, 2021-06-29
 -------------------------
