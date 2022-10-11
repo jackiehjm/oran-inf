@@ -22,8 +22,6 @@ set -e -o pipefail
 # Variables
 #########################################################################
 WORKSPACE=""
-MIRROR_VER=stx-6.0
-MIRROR_CONTAINER_IMG=infbuilder/inf-centos-mirror:2022.05-${MIRROR_VER}
 
 SCRIPTS_NAME=$(basename $0)
 
@@ -75,18 +73,94 @@ while getopts "w:h" OPTION; do
     esac
 done
 
-get_mirror () {
-    msg_step="Get rpm mirror from dockerhub image"
+#########################################################################
+# Functions
+#########################################################################
+
+install_pkgs () {
+    msg_step="Install/downlaod/config required dependencies by mirror/build processes."
     echo_step_start
 
-    docker pull ${MIRROR_CONTAINER_IMG}
-    docker create -ti --name inf-centos-mirror ${MIRROR_CONTAINER_IMG} sh
-    docker cp inf-centos-mirror:/mirror_${MIRROR_VER} ${MIRROR_DIR}
-    docker rm inf-centos-mirror
+    echo_info "Install required packages"
+    sudo yum install -y \
+        anaconda \
+        anaconda-runtime \
+        autoconf-archive \
+        autogen \
+        automake \
+        bc \
+        bind \
+        bind-utils \
+        bison \
+        cpanminus \
+        createrepo \
+        createrepo_c \
+        deltarpm \
+        expat-devel \
+        flex \
+        isomd5sum \
+        gcc \
+        gettext \
+        libguestfs-tools \
+        libtool \
+        libxml2 \
+        lighttpd \
+        lighttpd-fastcgi \
+        lighttpd-mod_geoip \
+        net-tools \
+        mkisofs \
+        mongodb \
+        mongodb-server \
+        pax \
+        perl-CPAN \
+        python-deltarpm \
+        python-pep8 \
+        python-pip \
+        python-psutil \
+        python2-psutil \
+        python36-psutil \
+        python36-requests \
+        python3-devel \
+        python-sphinx \
+        python-subunit \
+        python-virtualenv \
+        python-yaml \
+        python2-ruamel-yaml \
+        postgresql \
+        qemu-kvm \
+        quilt \
+        rpm-build \
+        rpm-sign \
+        rpm-python \
+        squashfs-tools \
+        sudo \
+        systemd \
+        syslinux \
+        udisks2 \
+        vim-enhanced \
+        wget
+
+    echo_info "Install required cpan modules"
+    # cpan modules, installing with cpanminus to avoid stupid questions since cpan is whack
+    sudo cpanm --notest Fatal
+    sudo cpanm --notest XML::SAX
+    sudo cpanm --notest XML::SAX::Expat
+    sudo cpanm --notest XML::Parser
+    sudo cpanm --notest XML::Simple
+
+    echo_info "Install repo tool"
+    sudo wget https://storage.googleapis.com/git-repo-downloads/repo -O /usr/local/bin/repo
+    sudo chmod a+x /usr/local/bin/repo
+
+    echo_info "Install go and setting paths"
+    export GOPATH="/usr/local/go"
+    export PATH="${GOPATH}/bin:${PATH}"
+    sudo yum install -y golang
+    sudo mkdir -p ${GOPATH}/bin
+    curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sudo -E sh
 
     echo_step_end
 }
-
 
 #########################################################################
 # Main process
@@ -112,69 +186,7 @@ sudo chown root:mock ${LOCALDISK}/loadbuild/mock-cache
 
 echo_step_end
 
-msg_step="Install/downlaod/config required dependencies by mirror/build processes."
-echo_step_start
-
-echo_info "Install required packages"
-sudo yum install -y \
-    anaconda \
-    anaconda-runtime \
-    autoconf-archive \
-    autogen \
-    automake \
-    bc \
-    bind \
-    bind-utils \
-    bison \
-    cpanminus \
-    createrepo \
-    createrepo_c \
-    deltarpm \
-    expat-devel \
-    flex \
-    isomd5sum \
-    gcc \
-    gettext \
-    libguestfs-tools \
-    libtool \
-    libxml2 \
-    lighttpd \
-    lighttpd-fastcgi \
-    lighttpd-mod_geoip \
-    net-tools \
-    mkisofs \
-    mongodb \
-    mongodb-server \
-    pax \
-    perl-CPAN \
-    python-deltarpm \
-    python-pep8 \
-    python-pip \
-    python-psutil \
-    python2-psutil \
-    python36-psutil \
-    python36-requests \
-    python3-devel \
-    python-sphinx \
-    python-subunit \
-    python-virtualenv \
-    python-yaml \
-    python2-ruamel-yaml \
-    postgresql \
-    qemu-kvm \
-    quilt \
-    rpm-build \
-    rpm-sign \
-    rpm-python \
-    squashfs-tools \
-    sudo \
-    systemd \
-    syslinux \
-    udisks2 \
-    vim-enhanced \
-    wget
-
-
+install_pkgs
 
 echo_info "Clone the tools repo"
 cd ${WORKSPACE}
@@ -183,7 +195,6 @@ git clone https://opendev.org/starlingx/tools.git
 echo_info "mock custumizations"
 # forcing chroots since a couple of packages naughtily insist on network access and
 # we dont have nspawn and networks happy together.
-set -x
 sudo groupadd -g 9001 mockbuild
 sudo useradd -s /sbin/nologin -u 9001 -g 9001 mockbuild
 sudo rmdir /var/lib/mock
@@ -194,26 +205,7 @@ sudo ln -s ${LOCALDISK}/loadbuild/mock-cache /var/cache/mock
 echo "config_opts['use_nspawn'] = False" | sudo tee -a /etc/mock/site-defaults.cfg
 echo "config_opts['rpmbuild_networking'] = True" | sudo tee -a /etc/mock/site-defaults.cfg
 echo | sudo tee -a /etc/mock/site-defaults.cfg
-set +x
 
-echo_info "Install required cpan modules"
-# cpan modules, installing with cpanminus to avoid stupid questions since cpan is whack
-sudo cpanm --notest Fatal
-sudo cpanm --notest XML::SAX
-sudo cpanm --notest XML::SAX::Expat
-sudo cpanm --notest XML::Parser
-sudo cpanm --notest XML::Simple
-
-echo_info "Install repo tool"
-sudo wget https://storage.googleapis.com/git-repo-downloads/repo -O /usr/local/bin/repo
-sudo chmod a+x /usr/local/bin/repo
-
-echo_info "Install go and setting paths"
-export GOPATH="/usr/local/go"
-export PATH="${GOPATH}/bin:${PATH}"
-sudo yum install -y golang
-sudo mkdir -p ${GOPATH}/bin
-curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sudo -E sh
 
 echo_info "Install pip packages"
 # Install required python modules globally; versions are in the constraints file.
