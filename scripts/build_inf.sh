@@ -155,6 +155,8 @@ get_debug_info () {
 # Main process
 #########################################################################
 
+USE_MIRROR="-m"
+
 prepare_workspace
 if [ "$CI" = "true" ]; then
     get_debug_info
@@ -169,13 +171,13 @@ if [ -z "${DRYRUN}" ]; then
         RUN_CMD="${SCRIPT_CENTOS_PRE} -w ${WORKSPACE_CENTOS}"
         run_cmd "Prepare for CentOS builds"
     fi
-    RUN_CMD="${SCRIPT_CENTOS} -w ${WORKSPACE_CENTOS} ${DRYRUN}"
+    RUN_CMD="${SCRIPT_CENTOS} -w ${WORKSPACE_CENTOS} ${DRYRUN} ${USE_MIRROR}"
     run_cmd "Start CentOS builds"
 
     echo_step_end
 fi
 
-msg_step="CentOS builds"
+msg_step="Yocto builds"
 echo_step_start
 
 RUN_CMD="${SCRIPT_YP} -w ${WORKSPACE_YP} ${DRYRUN} ${YP_ARGS}"
