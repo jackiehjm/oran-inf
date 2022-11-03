@@ -213,15 +213,15 @@ get_mirror_src () {
     msg_step="Get src mirror from dockerhub image"
     echo_step_start
 
-    if [ -d ${MY_REPO_ROOT_DIR}/.repo ]; then
+    if [ -d ${STX_REPO_ROOT}/.repo ]; then
         echo_info "The src repos already exists, skipping"
     else
         docker pull ${MIRROR_SRC_STX}
         docker create -ti --name inf-src-stx ${MIRROR_SRC_STX} sh
-        docker cp inf-src-stx:/stx-${STX_VER}.tar.bz2 ${MY_REPO_ROOT_DIR}
+        docker cp inf-src-stx:/stx-${STX_VER}.tar.bz2 ${STX_REPO_ROOT}
         docker rm inf-src-stx
 
-        cd ${MY_REPO_ROOT_DIR}
+        cd ${STX_REPO_ROOT}
         tar xf stx-${STX_VER}.tar.bz2
         mv stx-${STX_VER}/* stx-${STX_VER}/.repo .
         rm -rf stx-${STX_VER} stx-${STX_VER}.tar.bz2
@@ -254,7 +254,7 @@ patch_src () {
     cd ${SRC_META_PATCHES}
     src_dirs=$(find . -type f -printf "%h\n"|uniq)
     for d in ${src_dirs}; do
-        cd ${MY_REPO_ROOT_DIR}/${d}
+        cd ${STX_REPO_ROOT}/${d}
 
         # backup current branch
         local_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -286,14 +286,14 @@ init_stx_tool () {
     # Align the builder container to use your user/UID
     stx config --add builder.myuname $(id -un)
     stx config --add builder.uid $(id -u)
-    
+
     # Embedded in ~/localrc of the build container
     stx config --add project.gituser ${USER_NAME}
     stx config --add project.gitemail ${USER_EMAIL}
-    
-    # This will be included in the name of your build container and the basename for $MY_REPO_ROOT_DIR  
+
+    # This will be included in the name of your build container and the basename for $STX_REPO_ROOT
     stx config --add project.name ${PRJ_NAME}
-    
+
     #stx config --add project.proxy true
     #stx config --add project.proxyserver 147.11.252.42
     #stx config --add project.proxyport 9090
