@@ -144,7 +144,7 @@ prepare_workspace () {
     ln -sf $(realpath --relative-to=${WORKSPACE} ${STX_LOCAL_PRJ_DIR}) ${STX_PRJ_DIR}
 
     echo_info "The following directories are created in your workspace(${WORKSPACE}):"
-    echo_info "For all layers source: ${STX_SRC_DIR}"
+    echo_info "For all source repos: ${STX_SRC_DIR}"
     echo_info "For StarlingX deb pkgs mirror: ${STX_MIRROR_DIR}"
     echo_info "For StarlingX build project: ${STX_PRJ_DIR}"
 
@@ -181,6 +181,7 @@ export STX_MANIFEST="default.xml"
 EOF
 
     echo_info "Env file created at ${WORKSPACE}/$ENV_FILENAME"
+    cat ${WORKSPACE}/$ENV_FILENAME
 
     source ${WORKSPACE}/${ENV_FILENAME}
 
@@ -234,10 +235,14 @@ get_mirror_pkg () {
     msg_step="Get deb mirror from dockerhub image"
     echo_step_start
 
-    docker pull ${MIRROR_CONTAINER_IMG}
-    docker create -ti --name inf-debian-mirror ${MIRROR_CONTAINER_IMG} sh
-    docker cp inf-debian-mirror:/mirror_stx-${STX_VER}/. ${STX_MIRROR_DIR}
-    docker rm inf-debian-mirror
+    if [ -d ${MIRROR_CONTAINER_IMG}/starlingx ]; then
+        echo_info "The deb mirror already exists, skipping"
+    else
+        docker pull ${MIRROR_CONTAINER_IMG}
+        docker create -ti --name inf-debian-mirror ${MIRROR_CONTAINER_IMG} sh
+        docker cp inf-debian-mirror:/mirror_stx-${STX_VER}/. ${STX_MIRROR_DIR}
+        docker rm inf-debian-mirror
+    fi
 
     echo_step_end
 }
@@ -245,10 +250,9 @@ get_mirror_pkg () {
 patch_src () {
     echo_step_start "Some source codes need to be patched for INF project"
 
-    grep -q "${ORAN_REL}" \
-        ${MY_REPO}/stx/config-files/debian-release-config/files/issue* \
-        || sed -i "s/\(@PLATFORM_RELEASE@\)/\1 - ${ORAN_REL}/" \
-        ${MY_REPO}/stx/config-files/debian-release-config/files/issue*
+    STX_ISSUE_DIR="${STX_REPO_ROOT}/cgcs-root/stx/config-files/debian-release-config/files"
+    grep -q "${ORAN_REL}" ${STX_ISSUE_DIR}/issue* \
+        || sed -i "s/\(@PLATFORM_RELEASE@\)/\1 - ${ORAN_REL}/" ${STX_ISSUE_DIR}/issue*
 
     # Apply meta patches
     cd ${SRC_META_PATCHES}
@@ -311,6 +315,9 @@ build_image () {
 
     RUN_CMD="stx build prepare"
     run_cmd "Build prepare"
+
+    RUN_CMD="stx build download"
+    run_cmd "Download packges"
 
     RUN_CMD="stx repomgr list"
     run_cmd "repomgr list"
