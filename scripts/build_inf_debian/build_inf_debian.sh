@@ -160,7 +160,7 @@ create_env () {
     cat <<EOF > ${WORKSPACE}/${ENV_FILENAME}
 
 export STX_BUILD_HOME=${WORKSPACE}
-export STX_PRJ_NAME=${PRJ_NAME}
+export PROJECT=${PRJ_NAME}
 export STX_MIRROR_DIR=${STX_MIRROR_DIR}
 export STX_REPO_ROOT=${STX_SRC_DIR}
 #export STX_REPO_ROOT_SUBDIR="localdisk/designer/${USER}/${PRJ_NAME}"
@@ -351,4 +351,5 @@ else
     repo_init_sync
 fi
 patch_src
+init_stx_tool
 build_image
