@@ -171,7 +171,7 @@ export USER_EMAIL=${USER}@windriver.com
 # MINIKUBE
 export STX_PLATFORM="minikube"
 export STX_MINIKUBENAME="minikube-${USER}"
-export STX_MINIKUBE_HOME=${STX_MINIKUBE_HOME}
+export MINIKUBE_HOME=${STX_MINIKUBE_HOME}
 
 # Manifest/Repo Options:
 export STX_MANIFEST_URL="${STX_MANIFEST_URL}"
