@@ -255,25 +255,28 @@ patch_src () {
         || sed -i "s/\(@PLATFORM_RELEASE@\)/\1 - ${ORAN_REL}/" ${STX_ISSUE_DIR}/issue*
 
     # Apply meta patches
-    cd ${SRC_META_PATCHES}
-    src_dirs=$(find . -type f -printf "%h\n"|uniq)
-    for d in ${src_dirs}; do
-        cd ${STX_REPO_ROOT}/${d}
 
-        # backup current branch
-        local_branch=$(git rev-parse --abbrev-ref HEAD)
-        if [ "${local_branch}" = "HEAD" ]; then
-            git checkout ${STX_SRC_BRANCH}
+    if [ -d ${SRC_META_PATCHES} ]; then
+        cd ${SRC_META_PATCHES}
+        src_dirs=$(find . -type f -printf "%h\n"|uniq)
+        for d in ${src_dirs}; do
+            cd ${STX_REPO_ROOT}/${d}
+
+            # backup current branch
             local_branch=$(git rev-parse --abbrev-ref HEAD)
-        fi
-        git branch -m "${local_branch}_${TIMESTAMP}"
-        git checkout ${STX_SRC_BRANCH}
+            if [ "${local_branch}" = "HEAD" ]; then
+                git checkout ${STX_SRC_BRANCH}
+                local_branch=$(git rev-parse --abbrev-ref HEAD)
+            fi
+            git branch -m "${local_branch}_${TIMESTAMP}"
+            git checkout ${STX_SRC_BRANCH}
 
-        for p in $(ls -1 ${SRC_META_PATCHES}/${d}); do
-            echo_info "Apllying patch: ${SRC_META_PATCHES}/${d}/${p}"
-            git am ${SRC_META_PATCHES}/${d}/${p}
+            for p in $(ls -1 ${SRC_META_PATCHES}/${d}); do
+                echo_info "Apllying patch: ${SRC_META_PATCHES}/${d}/${p}"
+                git am ${SRC_META_PATCHES}/${d}/${p}
+            done
         done
-    done
+    fi
 
     echo_step_end
 }
@@ -343,7 +346,7 @@ prepare_workspace
 create_env
 if [ "${USE_MIRROR}" == "Yes" ]; then
     get_mirror_src
-    get_mirror_pkg
+    #get_mirror_pkg
 else
     repo_init_sync
 fi
